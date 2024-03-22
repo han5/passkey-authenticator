@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>passkey-authenticator</artifactId>
+    <groupId>com.orgo.passkey</groupId>
+    <description>Passkey virtual authenticator for any Passkey API</description>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <properties>
+        <chronicle-bytes.version>2.19.9</chronicle-bytes.version>
+        <guava.version>31.1-jre</guava.version>
+        <maven-failsafe-plugin.version>3.1.0</maven-failsafe-plugin.version>
+        <maven-compiler-plugin.version>3.8.0</maven-compiler-plugin.version>
+        <java.version>1.8</java.version>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin.version}</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <!-- webauthn sdk + yubico helpers -->
+        <dependency>
+            <groupId>io.github.adessose</groupId>
+            <artifactId>softauthn</artifactId>
+            <version>0.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>net.i2p.crypto</groupId>
+            <artifactId>eddsa</artifactId>
+            <version>0.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.augustcellars.cose</groupId>
+            <artifactId>cose-java</artifactId>
+            <version>1.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yubico</groupId>
+            <artifactId>webauthn-server-core</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yubico</groupId>
+            <artifactId>yubico-util</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.14.0-rc2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-core</artifactId>
+            <version>2.14.0-rc2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-annotations</artifactId>
+            <version>2.14.0-rc2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-cbor</artifactId>
+            <version>2.14.0-rc2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.14.0-rc2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.14.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>2.0.0.Final</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.openhft</groupId>
+            <artifactId>chronicle-bytes</artifactId>
+            <version>${chronicle-bytes.version}</version>
+        </dependency>
+
+    </dependencies>
+
+    <profiles>
+        <!-- remote -->
+        <profile>
+            <id>remote-integration-test</id>
+            <properties>
+                <testEnv>e1-np</testEnv>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>3.0.0-M5</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>1.8</version>
+                        <executions>
+                            <execution>
+                                <id>run-cukes</id>
+                                <phase>integration-test</phase>
+                                <configuration>
+                                    <target name="run">
+                                        <property name="maven.classpath" refid="maven.compile.classpath"/>
+                                        <java fork="true" failonerror="yes" classname="com.sony.sie.rex.cucumber.client.Runner" classpath="${maven.classpath}">
+                                            <arg line="--plugin" />
+                                            <arg line="pretty" />
+                                            <arg line="--plugin" />
+                                            <arg line="json:../target/cucumber/evergreen-passkey-cucumber.json" />
+                                            <arg line="--plugin" />
+                                            <arg line="junit:../target/cucumber/evergreen-passkey-cucumber.xml" />
+                                            <arg line="--glue" />
+                                            <arg line="com.sony.auth.integration.steps" />
+                                            <arg line="--glue" />
+                                            <arg line="com.sony.sie.rex.cucumber.steps" />
+                                            <arg line="--glue" />
+                                            <arg line="com.sony.auth.passkey.integration.steps" />
+                                            <arg line="src/main/resources/features" />
+                                            <sysproperty key="deploymentEnvironment" value="${testEnv}" />
+                                        </java>
+                                    </target>
+                                </configuration>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>com.sony.sie.auth.test</groupId>
+                                <artifactId>evergreen-brew</artifactId>
+                                <version>${project.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

@@ -1,0 +1,71 @@
+# Binaries
+
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+*.jar
+
+# Maven
+
+target/
+
+#imported projects from svn
+.svn/
+
+# Eclipse
+*.classpath
+*.project
+.settings/
+.metadata/
+.springBeans
+.checkstyle 
+
+# Intellij
+.idea/
+*.iml
+
+# vscode
+.vscode/
+
+#local web context
+META-INF/
+
+#osx crap
+.DS_Store
+
+#vim
+*.swp
+.*.swp
+
+#backups
+*~
+
+#cucumber
+.buildpath
+accounts.yml
+clients.yml
+cucumber_coverage
+Gemfile.lock
+selenium/
+
+#logs
+*.log
+
+#rvm
+.rvmrc
+
+#sass
+.sass-cache
+
+#css map files
+*.css.map
+
+branch
+queues
+
+**/container.id
+
+test/auto/func/cucumber/.ruby-version
