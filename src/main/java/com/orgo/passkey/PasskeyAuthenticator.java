@@ -1,10 +1,10 @@
-package com.orgo.passkey.model;
+package com.orgo.passkey;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import com.google.common.collect.ImmutableList;
+import com.orgo.passkey.model.CredentialModel;
 import com.orgo.passkey.util.JsonUtils;
 import com.yubico.webauthn.data.AttestationConveyancePreference;
 import com.yubico.webauthn.data.AuthenticatorAssertionResponse;
@@ -44,8 +44,6 @@ public class PasskeyAuthenticator {
     private final Origin origin;
     private CredentialsContainer credentials;
 
-    private final List<PublicKeyCredential<?,?>> pkQueue = new ArrayList<>();
-
     public PasskeyAuthenticator(String host) {
         this(new Origin("https", host, -1, null));
     }
@@ -57,7 +55,6 @@ public class PasskeyAuthenticator {
 
     public void clearCredentials() {
         credentials = new CredentialsContainer(origin, ImmutableList.of(Authenticators.platform().build()));
-        pkQueue.clear();
     }
 
     public PublicKeyCredential<?,?> newCredentialFromChallenge(String credentialOptions) {
@@ -104,11 +101,7 @@ public class PasskeyAuthenticator {
             .excludeCredentials(Collections.emptySet())
             .build();
 
-        PublicKeyCredential<?,?> pKey = credentials.create(pKCCO);
-
-        pkQueue.add(pKey);
-
-        return pKey;
+        return credentials.create(pKCCO);
     }
 
     public String credentialToAssertion(PublicKeyCredential<?,?> key) {
